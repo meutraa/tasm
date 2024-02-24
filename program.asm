@@ -1,6 +1,4 @@
-mov r0, 4
-mull r1, 5, r0
-
-start:
-dec r1
-jmpne start, r1, 0
+mov r0, 2
+shl r0, r0, 2
+shr r1, r0, 1
+shl r1, r1, 4

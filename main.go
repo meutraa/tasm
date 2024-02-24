@@ -14,17 +14,19 @@ var opcodes = map[string]uint8{
 	"imm1":   0b10000000,
 	"imm2":   0b01000000,
 	"null":   0b11111111, // read zero
-	"add":    0b00000000,
-	"sub":    0b00000001,
-	"and":    0b00000010,
-	"or":     0b00000011,
-	"not":    0b00000100,
-	"xor":    0b00000101,
-	"push":   0b00000110,
-	"pop":    0b00000111,
-	"mov":    0b00001000,
-	"mull":   0b00001001,
-	"mulu":   0b00001010,
+	"add":    0,
+	"sub":    1,
+	"and":    2,
+	"or":     3,
+	"not":    4,
+	"xor":    5,
+	"push":   6,
+	"pop":    7,
+	"mov":    8,
+	"mull":   9,
+	"mulu":   10,
+	"shl":    11,
+	"shr":    12,
 	"jmpe":   32,
 	"jmpne":  33,
 	"jmplt":  34,
@@ -197,7 +199,7 @@ func main() {
 			fmt.Printf(format, opcodes["sub"]|imm2, dest, 1, dest)
 		case "inc":
 			fmt.Printf(format, opcodes["add"]|imm2, dest, 1, dest)
-		case "mull", "mulu":
+		case "mull", "mulu", "shl", "shr":
 			fallthrough
 		case "add", "sub", "and", "or", "xor", "jmpe", "jmpne", "jmplt", "jmplte", "jmpgt", "jmpgte":
 			fmt.Printf(format, inst, s1, s2, dest)
