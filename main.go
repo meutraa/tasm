@@ -180,7 +180,7 @@ func main() {
 			}
 		}
 
-		format := "%#08b %#08b %#08b %#08b\n"
+		format := "%#02x %#02x %#02x %#02x\n"
 		null := opcodes["null"]
 		imm1 := opcodes["imm1"]
 		imm2 := opcodes["imm2"]
