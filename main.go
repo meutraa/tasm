@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"strconv"
@@ -13,7 +14,6 @@ var opcodes = map[string]uint8{
 	"imm1":   0b10000000,
 	"imm2":   0b01000000,
 	"null":   0b11111111, // read zero
-	"mov":    0b00000000,
 	"add":    0b00000000,
 	"sub":    0b00000001,
 	"and":    0b00000010,
@@ -22,6 +22,7 @@ var opcodes = map[string]uint8{
 	"xor":    0b00000101,
 	"push":   0b00000110,
 	"pop":    0b00000111,
+	"mov":    0b00001000,
 	"jmpe":   32,
 	"jmpne":  33,
 	"jmplt":  34,
@@ -70,6 +71,34 @@ func main() {
 
 	var address uint8 = 0
 	scanner := bufio.NewScanner(file)
+
+	// first scan for addresses
+	for scanner.Scan() {
+		line := scanner.Text()
+		fields := strings.Fields(line)
+
+		if len(fields) == 0 || strings.HasSuffix(fields[0], "#") {
+			continue
+		}
+
+		instruction := fields[0]
+		isLabel := strings.HasSuffix(instruction, ":")
+		if !isLabel {
+			if instruction == "call" {
+				address += 8
+			} else {
+				address += 4
+			}
+		}
+		if isLabel {
+			labels[strings.Split(instruction, ":")[0]] = address
+			log.Println(strings.Split(instruction, ":")[0], address)
+		}
+	}
+
+	address = 0
+	file.Seek(0, io.SeekStart)
+	scanner = bufio.NewScanner(file)
 	for scanner.Scan() {
 		lineog := scanner.Text()
 		line := strings.ReplaceAll(lineog, ",", "")
@@ -86,23 +115,25 @@ func main() {
 		}
 
 		instruction := fields[0]
-		if instruction == "label" {
+		if strings.HasSuffix(instruction, ":") {
 			fmt.Println("# " + lineog)
-			labels[fields[1]] = address
 			continue
 		}
 
-		address += 4
-
 		inst, ok := opcodes[instruction]
 		if !ok {
-			log.Fatalln("instruction undefined", instruction)
+			// might be a microcode
+			switch instruction {
+			case "call", "ret", "jmp":
+			default:
+				log.Fatalln("instruction undefined", instruction)
+			}
 		}
 
 		var dest, s1, s2 uint8
 		if len(fields) > 1 {
 			a := fields[1]
-			if strings.HasPrefix(instruction, "jmp") {
+			if strings.HasPrefix(instruction, "jmp") || strings.HasPrefix(instruction, "call") {
 				dest, ok = labels[a]
 				if !ok {
 					log.Fatalln("label not defined", a)
@@ -147,19 +178,33 @@ func main() {
 
 		format := "%#08b %#08b %#08b %#08b\n"
 		null := opcodes["null"]
-		fmt.Printf("# %v\n", lineog)
+		imm1 := opcodes["imm1"]
+		fmt.Printf("#(%v) %v\n", address, lineog)
 		switch instruction {
 		case "push":
 			fmt.Printf(format, inst, s1, null, null)
 		case "pop":
 			fmt.Printf(format, inst, null, null, dest)
+		case "jmp":
+			//fmt.Printf("#(%v) mov %v pa\n", address, dest)
+			fmt.Printf(format, opcodes["mov"]|imm1, dest, null, places["pa"])
 		case "mov", "not":
 			fmt.Printf(format, inst, s1, null, dest)
 		case "add", "sub", "and", "or", "xor", "jmpe", "jmpne", "jmplt", "jmplte", "jmpgt", "jmpgte":
 			fmt.Printf(format, inst, s1, s2, dest)
+		case "call":
+			//fmt.Printf("#(%v) (push | imm1) %v null null\n", address, address+8)
+			fmt.Printf(format, opcodes["push"]|imm1, address+8, null, null)
+			address += 4
+			//fmt.Printf("#(%v) mov %v pa\n", address, dest)
+			fmt.Printf(format, opcodes["mov"]|imm1, dest, null, places["pa"])
+		case "ret":
+			fmt.Printf(format, opcodes["pop"], null, null, places["pa"])
 		default:
-			fmt.Println("Unknown command:", instruction)
+			log.Fatalln("Unknown command:", instruction)
 		}
+
+		address += 4
 	}
 
 	if err := scanner.Err(); err != nil {
