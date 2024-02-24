@@ -23,6 +23,8 @@ var opcodes = map[string]uint8{
 	"push":   0b00000110,
 	"pop":    0b00000111,
 	"mov":    0b00001000,
+	"mull":   0b00001001,
+	"mulu":   0b00001010,
 	"jmpe":   32,
 	"jmpne":  33,
 	"jmplt":  34,
@@ -124,7 +126,7 @@ func main() {
 		if !ok {
 			// might be a microcode
 			switch instruction {
-			case "call", "ret", "jmp":
+			case "call", "ret", "jmp", "dec", "inc":
 			default:
 				log.Fatalln("instruction undefined", instruction)
 			}
@@ -179,6 +181,7 @@ func main() {
 		format := "%#08b %#08b %#08b %#08b\n"
 		null := opcodes["null"]
 		imm1 := opcodes["imm1"]
+		imm2 := opcodes["imm2"]
 		fmt.Printf("#(%v) %v\n", address, lineog)
 		switch instruction {
 		case "push":
@@ -190,6 +193,12 @@ func main() {
 			fmt.Printf(format, opcodes["mov"]|imm1, dest, null, places["pa"])
 		case "mov", "not":
 			fmt.Printf(format, inst, s1, null, dest)
+		case "dec":
+			fmt.Printf(format, opcodes["sub"]|imm2, dest, 1, dest)
+		case "inc":
+			fmt.Printf(format, opcodes["add"]|imm2, dest, 1, dest)
+		case "mull", "mulu":
+			fallthrough
 		case "add", "sub", "and", "or", "xor", "jmpe", "jmpne", "jmplt", "jmplte", "jmpgt", "jmpgte":
 			fmt.Printf(format, inst, s1, s2, dest)
 		case "call":
