@@ -148,7 +148,8 @@ func main() {
 			if strings.HasPrefix(instruction, "jmp") || strings.HasPrefix(instruction, "call") {
 				dest, ok = labels[a]
 				if !ok {
-					log.Fatalln("label not defined", a)
+					log.Println("label not defined", a)
+					dest = places[a]
 				}
 			} else {
 				var ok bool
