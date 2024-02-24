@@ -10,6 +10,14 @@ import (
 	"strings"
 )
 
+type P interface {
+	string | uint8
+}
+
+func add(rd, rs1, rs2 uint8) string {
+	return fmt.Sprintf("%v %v %v %v", opcodes["add"], rs1, rs2, rd)
+}
+
 var opcodes = map[string]uint8{
 	"imm1":   0b10000000,
 	"imm2":   0b01000000,
@@ -96,7 +104,7 @@ func main() {
 		}
 		if isLabel {
 			labels[strings.Split(instruction, ":")[0]] = address
-			log.Println(strings.Split(instruction, ":")[0], address)
+			//log.Println(strings.Split(instruction, ":")[0], address)
 		}
 	}
 
