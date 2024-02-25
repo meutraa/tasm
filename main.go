@@ -16,60 +16,60 @@ const (
 	L   = 4
 )
 
-func output(a, b, c, d uint8) string {
+func output(a, b, c, d uint16) string {
 	return fmt.Sprintf("%#02x %#02x %#02x %#02x", a, b, c, d)
 }
 
-func threeL(code uint8) Instruction {
+func threeL(code uint16) Instruction {
 	return Instruction{
 		opcode:  code,
-		params:  []uint8{L | IMM, R | IMM, R | IMM},
-		mapping: []uint8{3, 1, 2},
-		out: func(code uint8, p []uint8) string {
+		params:  []uint16{L | IMM, R | IMM, R | IMM},
+		mapping: []uint16{3, 1, 2},
+		out: func(code uint16, p []uint16) string {
 			return output(code, p[1], p[2], p[0])
 		},
 	}
 }
 
-func three(code uint8) Instruction {
+func three(code uint16) Instruction {
 	return Instruction{
 		opcode:  code,
-		params:  []uint8{R, R | IMM, R | IMM},
-		mapping: []uint8{3, 1, 2},
-		out: func(code uint8, p []uint8) string {
+		params:  []uint16{R, R | IMM, R | IMM},
+		mapping: []uint16{3, 1, 2},
+		out: func(code uint16, p []uint16) string {
 			return output(code, p[1], p[2], p[0])
 		},
 	}
 }
 
-func two(code uint8) Instruction {
+func two(code uint16) Instruction {
 	return Instruction{
 		opcode:  code,
-		params:  []uint8{R, R | IMM},
-		mapping: []uint8{3, 1},
-		out: func(code uint8, p []uint8) string {
+		params:  []uint16{R, R | IMM},
+		mapping: []uint16{3, 1},
+		out: func(code uint16, p []uint16) string {
 			return output(code, p[1], unused, p[0])
 		},
 	}
 }
 
-func one(code uint8) Instruction {
+func one(code uint16) Instruction {
 	return Instruction{
 		opcode:  code,
-		params:  []uint8{R | IMM},
-		mapping: []uint8{1},
-		out: func(code uint8, p []uint8) string {
+		params:  []uint16{R | IMM},
+		mapping: []uint16{1},
+		out: func(code uint16, p []uint16) string {
 			return output(code, p[0], unused, unused)
 		},
 	}
 }
 
-func oneRd(code uint8) Instruction {
+func oneRd(code uint16) Instruction {
 	return Instruction{
 		opcode:  code,
-		params:  []uint8{R},
-		mapping: []uint8{3},
-		out: func(code uint8, p []uint8) string {
+		params:  []uint16{R},
+		mapping: []uint16{3},
+		out: func(code uint16, p []uint16) string {
 			return output(code, unused, unused, p[0])
 		},
 	}
@@ -95,11 +95,11 @@ var instructions = map[string]Instruction{
 	"jmplte": threeL(35),
 	"jmpgt":  threeL(36),
 	"jmpgte": threeL(37),
-	"call":   Instruction{params: []uint8{L}},
-	"ret":    Instruction{params: []uint8{}},
-	"jmp":    Instruction{params: []uint8{L}},
-	"dec":    Instruction{params: []uint8{R}},
-	"inc":    Instruction{params: []uint8{R}},
+	"call":   Instruction{params: []uint16{L}},
+	"ret":    Instruction{params: []uint16{}},
+	"jmp":    Instruction{params: []uint16{L}},
+	"dec":    Instruction{params: []uint16{R}},
+	"inc":    Instruction{params: []uint16{R}},
 }
 
 const (
@@ -109,13 +109,13 @@ const (
 )
 
 type Instruction struct {
-	opcode  uint8
-	params  []uint8
-	mapping []uint8
-	out     func(uint8, []uint8) string
+	opcode  uint16
+	params  []uint16
+	mapping []uint16
+	out     func(uint16, []uint16) string
 }
 
-var registers = map[string]uint8{
+var registers = map[string]uint16{
 	"r0":  0,
 	"r1":  1,
 	"r2":  2,
@@ -151,9 +151,9 @@ func main() {
 	}
 	defer file.Close()
 
-	labels := map[string]uint8{}
+	labels := map[string]uint16{}
 
-	var address uint8 = 0
+	var address uint16 = 0
 	scanner := bufio.NewScanner(file)
 
 	// first scan for addresses
@@ -212,7 +212,7 @@ func main() {
 			log.Fatalf("%v: instruction parameter count mismatch: expected %v, got %v\n", lineNo, paramCount, len(fields)-1)
 		}
 
-		p := make([]uint8, paramCount)
+		p := make([]uint16, paramCount)
 		for i := 0; i < paramCount; i++ {
 			// 0 - 2 for three params
 			parameter := inst.params[i]
@@ -245,7 +245,7 @@ func main() {
 			default:
 				// this is likely a jump to an address
 			}
-			p[i] = uint8(value)
+			p[i] = uint16(value)
 		}
 
 		fmt.Printf("#(%v) %v\n", address, lineog)
