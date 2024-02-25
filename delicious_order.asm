@@ -7,7 +7,7 @@ jmpne read, r0, 0
 
 mov r2, 1
 verystart:
-# r2 is the number of swaps
+; r2 is the number of swaps
 jmpe end, r2, 0
 mov r2, 0
 mov ra, 0

@@ -1,6 +1,6 @@
 wordstart:
-# start of a word
-# upper case = -32
+; start of a word
+; upper case = -32
 sub out, in, 32
 
 word:

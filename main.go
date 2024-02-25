@@ -95,11 +95,37 @@ var instructions = map[string]Instruction{
 	"jmplte": threeL(35),
 	"jmpgt":  threeL(36),
 	"jmpgte": threeL(37),
-	"call":   Instruction{params: []uint16{L}},
-	"ret":    Instruction{params: []uint16{}},
-	"jmp":    Instruction{params: []uint16{L}},
-	"dec":    Instruction{params: []uint16{R}},
-	"inc":    Instruction{params: []uint16{R}},
+	"call": {
+		params: []uint16{L},
+		out: func(address uint16, p []uint16) string {
+			return output(6, address+8, unused, unused) + "\n" +
+				output(8|imm1, p[0], unused, registers["pa"])
+		},
+	},
+	"ret": {
+		params: []uint16{},
+		out: func(code uint16, p []uint16) string {
+			return output(7, unused, unused, registers["pa"])
+		},
+	},
+	"jmp": {
+		params: []uint16{L},
+		out: func(code uint16, p []uint16) string {
+			return output(8|imm1, p[0], unused, registers["pa"])
+		},
+	},
+	"dec": {
+		params: []uint16{R},
+		out: func(code uint16, p []uint16) string {
+			return output(1|imm2, p[0], 1, p[0])
+		},
+	},
+	"inc": {
+		params: []uint16{R},
+		out: func(code uint16, p []uint16) string {
+			return output(0|imm2, p[0], 1, p[0])
+		},
+	},
 }
 
 const (
@@ -249,23 +275,12 @@ func main() {
 		}
 
 		fmt.Printf("#(%v) %v\n", address, lineog)
-		fmt.Println(inst.out(inst.opcode, p))
-		/*switch instruction {
-		case "jmp":
-			fmt.Printf(format, opcodes["mov"]|imm1, dest, null, places["pa"])
-		case "dec":
-			fmt.Printf(format, opcodes["sub"]|imm2, dest, 1, dest)
-		case "inc":
-			fmt.Printf(format, opcodes["add"]|imm2, dest, 1, dest)
-		case "call":
-			//fmt.Printf("#(%v) (push | imm1) %v null null\n", address, address+8)
-			fmt.Printf(format, opcodes["push"]|imm1, address+8, null, null)
+		code := inst.opcode
+		if instruction == "call" {
+			code = address
 			address += 4
-			//fmt.Printf("#(%v) mov %v pa\n", address, dest)
-			fmt.Printf(format, opcodes["mov"]|imm1, dest, null, places["pa"])
-		case "ret":
-			fmt.Printf(format, opcodes["pop"], null, null, places["pa"])
-		}*/
+		}
+		fmt.Println(inst.out(code, p))
 
 		address += 4
 	}
